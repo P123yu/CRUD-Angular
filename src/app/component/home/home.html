@@ -1,0 +1,13 @@
+<!-- <p>home works!</p>
+
+@for (user of usersList; track user?.id) {
+<p>{{ user?.name }}</p>
+} -->
+
+<ngx-loading [show]="(loadingService.isLoading$ | async) ?? false"></ngx-loading>
+
+<p>home works!</p>
+
+@for (user of usersList; track user?.id) {
+<p>{{ user?.name }}</p>
+}
