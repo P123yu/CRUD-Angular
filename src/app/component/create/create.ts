@@ -145,6 +145,7 @@ import { finalize } from 'rxjs/operators';
 
 import { AsyncPipe } from '@angular/common';
 import { User } from '../../service/user';
+import { Cities } from '../../shared/service/cities';
 import { Loading } from '../../shared/service/loading';
 import { AppConstants } from '../../util/AppConstants';
 
@@ -160,6 +161,7 @@ export class Create {
   private readonly userService = inject(User);
   private readonly toast = inject(ToastrService);
   public readonly loadingService = inject(Loading);
+  private readonly cityService = inject(Cities);
 
   userForm = this.fb.nonNullable.group({
     id: [''],
@@ -167,7 +169,7 @@ export class Create {
     city: ['', Validators.required],
     marks: ['', Validators.required],
   });
-AppConstants: any;
+  AppConstants: any;
 
   ngOnInit(): void {
     this.loadRecords();
@@ -178,6 +180,21 @@ AppConstants: any;
 
   selectedRecord: any;
 
+  cities: string[] = [];
+
+  loadCities() {
+    //  this.userService.getAllUsers().subscribe();
+    // this.cityService.cities$.subscribe((res) => {
+    //   this.cities = res;
+    //   console.log('Cities from service:', this.cities);
+    // });
+
+    this.cityService.cities$.subscribe((res) => {
+      this.cities = res;
+      console.log('Cities from service:', this.cities);
+    });
+  }
+
   loadRecords() {
     this.loadingService.show();
     this.userService
@@ -185,12 +202,9 @@ AppConstants: any;
       .pipe(finalize(() => this.loadingService.hide()))
       .subscribe({
         next: (response) => {
-          console.log(response?.data);
           if (response.success === AppConstants.SUCCESS_STATUS) {
-            console.log(response?.data, '90');
             this.usersList = response?.data;
-            console.log(response?.data);
-            console.log(this.usersList);
+            this.loadCities();
           }
         },
         error: () => {
@@ -199,21 +213,17 @@ AppConstants: any;
       });
   }
 
-  onEditClick(value: any): void {
+  onEditClick(value: any) {
     this.userForm.patchValue(value);
     this.editorType = AppConstants.UPDATE;
   }
 
-
-  
   onClearClick() {
     this.userForm.reset();
     this.editorType = AppConstants.CREATE;
   }
 
-
-
-  onDeleteClick(id: any): void {
+  onDeleteClick(id: any) {
     this.userService.deleteUser(id).subscribe({
       next: (response) => {
         if (response.success == AppConstants.SUCCESS_STATUS) {
@@ -231,7 +241,7 @@ AppConstants: any;
     });
   }
 
-  onSaveClick(): void {
+  onSaveClick() {
     if (this.userForm.valid) {
       const data = this.userForm.value;
       if (!data?.id) {
