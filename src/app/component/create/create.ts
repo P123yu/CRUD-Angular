@@ -167,9 +167,10 @@ export class Create {
     city: ['', Validators.required],
     marks: ['', Validators.required],
   });
+AppConstants: any;
 
   ngOnInit(): void {
-    this.loadRecords(); 
+    this.loadRecords();
   }
 
   usersList: any[] = [];
@@ -190,7 +191,6 @@ export class Create {
             this.usersList = response?.data;
             console.log(response?.data);
             console.log(this.usersList);
-            this.toast.success(response.message);
           }
         },
         error: () => {
@@ -202,6 +202,33 @@ export class Create {
   onEditClick(value: any): void {
     this.userForm.patchValue(value);
     this.editorType = AppConstants.UPDATE;
+  }
+
+
+  
+  onClearClick() {
+    this.userForm.reset();
+    this.editorType = AppConstants.CREATE;
+  }
+
+
+
+  onDeleteClick(id: any): void {
+    this.userService.deleteUser(id).subscribe({
+      next: (response) => {
+        if (response.success == AppConstants.SUCCESS_STATUS) {
+          const index = this.usersList.findIndex((user) => user.id === id);
+          this.usersList = this.usersList.filter((_, i) => i !== index);
+          this.userForm.reset();
+          if (response.message) {
+            this.toast.success(response.message);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error loading template:', err);
+      },
+    });
   }
 
   onSaveClick(): void {
@@ -238,6 +265,7 @@ export class Create {
                 this.usersList[index] = updatedUser;
               }
               this.userForm.reset();
+              this.editorType = AppConstants.CREATE;
               if (response.message) {
                 this.toast.success(response.message);
               }

@@ -48,9 +48,10 @@
 </form>
 
 <div class="m-t-8 d-flex justify-content-end">
-  <!-- <button mat-flat-button class="m-x-8" *ngIf="editorType === AppConstants.UPDATE" type="button"
-                    (click)="onClearClick()">Clear
-            </button> -->
+  @if(editorType === "Update") {
+  <button type="button" (click)="onClearClick()">Clear</button>
+  }
+
   <button (click)="onSaveClick()">
     {{ editorType }}
   </button>
@@ -59,4 +60,5 @@
 @for (user of usersList; track user?.id) {
 <p>{{ user?.name }}</p>
 <button (click)="onEditClick(user)">edit</button>
+<button (click)="onDeleteClick(user?.id)">delete</button>
 }
