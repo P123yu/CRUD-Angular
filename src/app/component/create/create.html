@@ -1,23 +1,5 @@
-<p>create works!</p>
+<!-- <p>create works!</p>
 
-<!-- 
-
- <form [formGroup]="userForm" #formGroupDirective="ngForm" class="form-field-full">
-            <p>Name</p>
-            <input  placeholder="name" formControlName="name"   required/>
-            <ng-container *ngIf="userForm.get('name')?.invalid">
-              <mat-error>{{ 'validation.required' }}</mat-error>
-            </ng-container>
-            
-
-           <div class="m-t-8 d-flex justify-content-end">
-            <button mat-flat-button class="m-x-8" *ngIf="editorType === AppConstants.UPDATE" type="button"
-                    (click)="onClearClick()">Clear
-            </button>
-            <button mat-flat-button (click)="onSaveClick()" [disabled]="editorType === 'Update' && selectedRecord?.isEditable === false">
-              {{editorType}}</button>
-          </div> 
-        </form> -->
 <ngx-loading [show]="(loadingService.isLoading$ | async) ?? false"></ngx-loading>
 
 <form [formGroup]="userForm">
@@ -42,9 +24,6 @@
   <p class="error">Marks are required</p>
   }
 
-  <!-- <div class="m-t-8 d-flex justify-content-end">
-    <button [disabled]="userForm.invalid" (click)="onSaveClick()">Submit</button>
-  </div> -->
 </form>
 
 <div class="m-t-8 d-flex justify-content-end">
@@ -61,4 +40,58 @@
 <p>{{ user?.name }}</p>
 <button (click)="onEditClick(user)">edit</button>
 <button (click)="onDeleteClick(user?.id)">delete</button>
+} -->
+
+<ngx-loading [show]="(loadingService.isLoading$ | async) ?? false"></ngx-loading>
+
+<form [formGroup]="userForm">
+  <p>Name</p>
+  <input placeholder="name" formControlName="name" required />
+  @if (userForm.get('name')?.invalid && (userForm.get('name')?.dirty ||
+  userForm.get('name')?.touched)) {
+  <p class="error">Name is required</p>
+  }
+
+  <p>City</p>
+  <input placeholder="city" formControlName="city" required />
+  @if (userForm.get('city')?.invalid && (userForm.get('city')?.dirty ||
+  userForm.get('city')?.touched)) {
+  <p class="error">City is required</p>
+  }
+
+  <p>Marks</p>
+  <input type="number" placeholder="marks" formControlName="marks" required />
+  @if (userForm.get('marks')?.invalid && (userForm.get('marks')?.dirty ||
+  userForm.get('marks')?.touched)) {
+  <p class="error">Marks are required</p>
+  }
+
+  <p>Image</p>
+  <input type="file" (change)="onFileChange($event)" />
+
+  <p>Date</p>
+<input
+  type="date"
+  formControlName="date"
+/>
+
+  @if (userForm.get('date')?.invalid && (userForm.get('date')?.dirty ||
+  userForm.get('date')?.touched)) {
+  <p class="error">Date is required</p>
+  }
+</form>
+
+<div class="m-t-8 d-flex justify-content-end">
+  @if (editorType === "Update") {
+  <button type="button" (click)="onClearClick()">Clear</button>
+  }
+  <button (click)="onSaveClick()">{{ editorType }}</button>
+</div>
+
+@for (user of usersList; track user.id) {
+<div>
+  <p>{{ user?.name }}</p>
+  <button (click)="onEditClick(user)">edit</button>
+  <button (click)="onDeleteClick(user?.id)">delete</button>
+</div>
 }

@@ -1,60 +1,12 @@
 // import { Component, inject } from '@angular/core';
 // import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-// import { ToastrService } from 'ngx-toastr';
-// import { User } from '../../service/user';
-// import { AppConstants } from '../../util/AppConstants';
-
-// @Component({
-//   selector: 'app-create',
-//   imports: [ReactiveFormsModule],
-//   templateUrl: './create.html',
-//   styleUrl: './create.scss',
-// })
-// export class Create {
-//   private readonly fb = inject(FormBuilder);
-//   private readonly userService = inject(User);
-//   private toast = inject(ToastrService);
-
-//   userForm = this.fb.nonNullable.group({
-//     id: [''],
-//     name: ['', Validators.required],
-//     city: ['', Validators.required],
-//     marks: ['', Validators.required],
-//   });
-
-//   ngOnInit(): void {}
-
-//   onSaveClick(): void {
-//     if (this.userForm.valid) {
-//       const data = this.userForm.value;
-//       if (!data?.id) {
-//         this.userService.createUser(data).subscribe({
-//           next: (response) => {
-//             if (response.success == AppConstants.SUCCESS_STATUS) {
-//               this.userForm.reset();
-//               if (response.message) {
-//                 this.toast.success(response.message);
-//               }
-//             } else {
-//               this.toast.error(AppConstants.TOAST_ERROR);
-//             }
-//           },
-//         });
-//       }
-//     }
-//   }
-// }
-
-// with loader
-
-// import { Component, inject } from '@angular/core';
-// import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 // import { NgxLoadingModule } from 'ngx-loading';
 // import { ToastrService } from 'ngx-toastr';
 // import { finalize } from 'rxjs/operators';
 
 // import { AsyncPipe } from '@angular/common';
 // import { User } from '../../service/user';
+// import { Cities } from '../../shared/service/cities';
 // import { Loading } from '../../shared/service/loading';
 // import { AppConstants } from '../../util/AppConstants';
 
@@ -70,6 +22,7 @@
 //   private readonly userService = inject(User);
 //   private readonly toast = inject(ToastrService);
 //   public readonly loadingService = inject(Loading);
+//   private readonly cityService = inject(Cities);
 
 //   userForm = this.fb.nonNullable.group({
 //     id: [''],
@@ -77,12 +30,31 @@
 //     city: ['', Validators.required],
 //     marks: ['', Validators.required],
 //   });
+//   AppConstants: any;
 
 //   ngOnInit(): void {
 //     this.loadRecords();
 //   }
 
 //   usersList: any[] = [];
+//   editorType: string = AppConstants.CREATE;
+
+//   selectedRecord: any;
+
+//   cities: string[] = [];
+
+//   loadCities() {
+//     //  this.userService.getAllUsers().subscribe();
+//     // this.cityService.cities$.subscribe((res) => {
+//     //   this.cities = res;
+//     //   console.log('Cities from service:', this.cities);
+//     // });
+
+//     this.cityService.cities$.subscribe((res) => {
+//       this.cities = res;
+//       console.log('Cities from service:', this.cities);
+//     });
+//   }
 
 //   loadRecords() {
 //     this.loadingService.show();
@@ -91,13 +63,9 @@
 //       .pipe(finalize(() => this.loadingService.hide()))
 //       .subscribe({
 //         next: (response) => {
-//           console.log(response?.data);
 //           if (response.success === AppConstants.SUCCESS_STATUS) {
-//             console.log(response?.data, '90');
 //             this.usersList = response?.data;
-//             console.log(response?.data);
-//             console.log(this.usersList);
-//             this.toast.success(response.message);
+//             this.loadCities();
 //           }
 //         },
 //         error: () => {
@@ -106,7 +74,35 @@
 //       });
 //   }
 
-//   onSaveClick(): void {
+//   onEditClick(value: any) {
+//     this.userForm.patchValue(value);
+//     this.editorType = AppConstants.UPDATE;
+//   }
+
+//   onClearClick() {
+//     this.userForm.reset();
+//     this.editorType = AppConstants.CREATE;
+//   }
+
+//   onDeleteClick(id: any) {
+//     this.userService.deleteUser(id).subscribe({
+//       next: (response) => {
+//         if (response.success == AppConstants.SUCCESS_STATUS) {
+//           const index = this.usersList.findIndex((user) => user.id === id);
+//           this.usersList = this.usersList.filter((_, i) => i !== index);
+//           this.userForm.reset();
+//           if (response.message) {
+//             this.toast.success(response.message);
+//           }
+//         }
+//       },
+//       error: (err) => {
+//         console.error('Error loading template:', err);
+//       },
+//     });
+//   }
+
+//   onSaveClick() {
 //     if (this.userForm.valid) {
 //       const data = this.userForm.value;
 //       if (!data?.id) {
@@ -130,9 +126,27 @@
 //               this.toast.error('Something went wrong.');
 //             },
 //           });
+//       } else {
+//         this.userService.updateUser(data).subscribe({
+//           next: (response) => {
+//             if (response.success === AppConstants.SUCCESS_STATUS) {
+//               const updatedUser = response.data;
+//               const index = this.usersList.findIndex((user) => user.id === updatedUser.id);
+//               if (index !== -1) {
+//                 this.usersList[index] = updatedUser;
+//               }
+//               this.userForm.reset();
+//               this.editorType = AppConstants.CREATE;
+//               if (response.message) {
+//                 this.toast.success(response.message);
+//               }
+//             }
+//           },
+//           error: (err) => {
+//             console.error('Error loading template:', err);
+//           },
+//         });
 //       }
-//     } else {
-//       this.toast.warning('Please fill all required fields');
 //     }
 //   }
 // }
@@ -143,7 +157,8 @@ import { NgxLoadingModule } from 'ngx-loading';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs/operators';
 
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { format, isValid, parse } from 'date-fns';
 import { User } from '../../service/user';
 import { Cities } from '../../shared/service/cities';
 import { Loading } from '../../shared/service/loading';
@@ -152,9 +167,9 @@ import { AppConstants } from '../../util/AppConstants';
 @Component({
   selector: 'app-create',
   standalone: true,
-  imports: [ReactiveFormsModule, NgxLoadingModule, AsyncPipe],
+  imports: [ReactiveFormsModule, NgxLoadingModule, AsyncPipe, CommonModule],
   templateUrl: './create.html',
-  styleUrl: './create.scss',
+  styleUrls: ['./create.scss'],
 })
 export class Create {
   private readonly fb = inject(FormBuilder);
@@ -163,38 +178,36 @@ export class Create {
   public readonly loadingService = inject(Loading);
   private readonly cityService = inject(Cities);
 
+  // Reactive Form
   userForm = this.fb.nonNullable.group({
     id: [''],
     name: ['', Validators.required],
     city: ['', Validators.required],
     marks: ['', Validators.required],
+    file: [null], // File will be stored here
+    date: ['', Validators.required],
   });
+
   AppConstants: any;
+
+  usersList: any[] = [];
+  editorType: string = AppConstants.CREATE;
+  selectedRecord: any;
+  cities: string[] = [];
 
   ngOnInit(): void {
     this.loadRecords();
   }
 
-  usersList: any[] = [];
-  editorType: string = AppConstants.CREATE;
-
-  selectedRecord: any;
-
-  cities: string[] = [];
-
+  // Load city list
   loadCities() {
-    //  this.userService.getAllUsers().subscribe();
-    // this.cityService.cities$.subscribe((res) => {
-    //   this.cities = res;
-    //   console.log('Cities from service:', this.cities);
-    // });
-
     this.cityService.cities$.subscribe((res) => {
       this.cities = res;
       console.log('Cities from service:', this.cities);
     });
   }
 
+  // Load users
   loadRecords() {
     this.loadingService.show();
     this.userService
@@ -213,16 +226,49 @@ export class Create {
       });
   }
 
+  // File input change
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.userForm.patchValue({ file: file });
+    }
+  }
+
+//  // simple without date and file
+//   onEditClick(value: any) {
+//     this.userForm.patchValue(value);
+//     }
+//     this.editorType = AppConstants.UPDATE;
+//   }
+
   onEditClick(value: any) {
     this.userForm.patchValue(value);
+
+    if (value.date) {
+      // Parse backend date string "dd-MM-yyyy"
+      const parsed = parse(value.date, 'dd-MM-yyyy', new Date());
+
+      if (isValid(parsed)) {
+        // Format into yyyy-MM-dd so input[type="date"] can display it
+        this.userForm.patchValue({ date: format(parsed, 'yyyy-MM-dd') });
+      } else {
+        this.userForm.patchValue({ date: '' });
+      }
+    } else {
+      this.userForm.patchValue({ date: '' });
+    }
+
+    this.userForm.patchValue({ file: null }); // reset file input
     this.editorType = AppConstants.UPDATE;
   }
 
+  // Clear form
   onClearClick() {
     this.userForm.reset();
     this.editorType = AppConstants.CREATE;
   }
 
+  // Delete user
   onDeleteClick(id: any) {
     this.userService.deleteUser(id).subscribe({
       next: (response) => {
@@ -241,13 +287,28 @@ export class Create {
     });
   }
 
+  // Convert form value to FormData
+  private toFormData(formValue: any): FormData {
+    const formData = new FormData();
+    Object.keys(formValue).forEach((key) => {
+      if (formValue[key] !== null && formValue[key] !== undefined) {
+        formData.append(key, formValue[key]);
+      }
+    });
+    return formData;
+  }
+
+  // Save user
   onSaveClick() {
     if (this.userForm.valid) {
       const data = this.userForm.value;
-      if (!data?.id) {
+      const formData = this.toFormData(data);
+
+      if (!data.id) {
+        // Create
         this.loadingService.show();
         this.userService
-          .createUser(data)
+          .createUser(formData)
           .pipe(finalize(() => this.loadingService.hide()))
           .subscribe({
             next: (response) => {
@@ -266,7 +327,8 @@ export class Create {
             },
           });
       } else {
-        this.userService.updateUser(data).subscribe({
+        // Update
+        this.userService.updateUser(formData).subscribe({
           next: (response) => {
             if (response.success === AppConstants.SUCCESS_STATUS) {
               const updatedUser = response.data;

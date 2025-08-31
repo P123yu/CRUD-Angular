@@ -8,4 +8,10 @@ export class AppConstants {
   public static readonly VIEW = 'View';
 
   public static readonly TOAST_ERROR = 'Failed';
+
+  public static readonly CREATE_API = '/create';
+  public static readonly UPDATE_API = '/update';
+  public static readonly DELETE_API = '/delete';
+  public static readonly READ_ALL_API = '/read-all';
+  public static readonly READ_API = '/read';
 }

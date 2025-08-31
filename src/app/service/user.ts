@@ -16,7 +16,7 @@ export class User {
   // get all users
 
   getAllUsers(): Observable<any> {
-    return this.http.get<any>(this.url + '/read-all').pipe(
+    return this.http.get<any>(this.url + AppConstants.READ_ALL_API).pipe(
       tap((users) => {
         this.cityService.setCities(users?.data?.map((user: any) => user.city));
       })
@@ -24,16 +24,22 @@ export class User {
   }
 
   createUser(data: any): Observable<any> {
-    return this.http.post<any>(this.url + '/create', data);
+    return this.http.post<any>(this.url + AppConstants.CREATE_API, data);
   }
 
   updateUser(data: any): Observable<any> {
-    return this.http.put<any>(this.url + '/update', data);
+    return this.http.put<any>(this.url + AppConstants.UPDATE_API, data);
   }
 
   deleteUser(id: string): Observable<any> {
-    return this.http.delete<any>(this.url + '/delete/' + id);
+    return this.http.delete<any>(this.url + AppConstants.DELETE_API + '/' + id);
   }
 
-  // get list of city
+  // using request param
+
+  // deleteUser(id: number): Observable<any> {
+  //   const params = new HttpParams().set('id', id.toString());
+  //   return this.http.delete(this.url, {params});
+  // }
+
 }
